@@ -9,14 +9,28 @@
 ## 📱 界面预览
 
 <p align="center">
-  <img src="docs/screenshots/home.webp" width="22%" alt="首页"/>
-  <img src="docs/screenshots/tools.webp" width="22%" alt="工具"/>
-  <img src="docs/screenshots/logs.webp" width="22%" alt="日志"/>
-  <img src="docs/screenshots/settings.webp" width="22%" alt="设置"/>
+  <img src="docs/screenshots/home.webp" width="32%" alt="首页"/><br/>
+  <sub>首页</sub>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/about.webp" width="22%" alt="关于"/>
+  <img src="docs/screenshots/tools.webp" width="32%" alt="工具"/><br/>
+  <sub>工具</sub>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/logs.webp" width="32%" alt="日志"/><br/>
+  <sub>日志</sub>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/settings.webp" width="32%" alt="设置"/><br/>
+  <sub>设置</sub>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/about.webp" width="32%" alt="关于"/><br/>
+  <sub>关于</sub>
 </p>
 
 - **权限降级链**:`root → Sui → Shizuku` 自动降级,没有 root 也能用 shell 级能力
