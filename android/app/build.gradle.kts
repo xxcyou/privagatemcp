@@ -1,3 +1,5 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -31,7 +33,7 @@ android {
             val b64 = System.getenv("KEYSTORE_BASE64")
             if (b64 != null) {
                 val ksFile = File("${project.buildDir}/release.jks")
-                ksFile.writeBytes(java.util.Base64.getDecoder().decode(b64))
+                ksFile.writeBytes(Base64.getDecoder().decode(b64))
                 storeFile = ksFile
                 storePassword = System.getenv("KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("KEY_ALIAS")
