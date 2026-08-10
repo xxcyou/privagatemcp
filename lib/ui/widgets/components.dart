@@ -256,7 +256,7 @@ class InfoRow extends StatelessWidget {
   final Color? valueColor;
   final bool mono;
 
-  InfoRow(
+  const InfoRow(
     this.label,
     this.value, {
     super.key,
@@ -302,7 +302,7 @@ class PrimaryButton extends StatelessWidget {
   final bool busy;
   final Color? color;
 
-  PrimaryButton({
+  const PrimaryButton({
     super.key,
     required this.label,
     this.icon,
@@ -367,7 +367,7 @@ class GhostButton extends StatelessWidget {
   final VoidCallback? onTap;
   final Color? color;
 
-  GhostButton({
+  const GhostButton({
     super.key,
     required this.label,
     this.icon,

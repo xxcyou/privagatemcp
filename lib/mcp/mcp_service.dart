@@ -1407,7 +1407,7 @@ class McpService {
             if (!await f.exists()) return _err('文件不存在: $path');
             var content = await f.readAsString();
             if (content.length > 1024 * 1024) {
-              content = content.substring(0, 1024 * 1024) + '\n...[truncated]';
+              content = '${content.substring(0, 1024 * 1024)}\n...[truncated]';
             }
             return _structured({'path': path, 'content': content, 'truncated': content.contains('[truncated]')});
           } catch (e) {
