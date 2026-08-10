@@ -9,27 +9,27 @@
 ## 📱 界面预览
 
 <p align="center">
-  <img src="docs/screenshots/home.webp" width="32%" alt="首页"/><br/>
+  <img src="docs/screenshots/home.webp" width="55%" alt="首页"/><br/>
   <sub>首页</sub>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/tools.webp" width="32%" alt="工具"/><br/>
+  <img src="docs/screenshots/tools.webp" width="55%" alt="工具"/><br/>
   <sub>工具</sub>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/logs.webp" width="32%" alt="日志"/><br/>
+  <img src="docs/screenshots/logs.webp" width="55%" alt="日志"/><br/>
   <sub>日志</sub>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/settings.webp" width="32%" alt="设置"/><br/>
+  <img src="docs/screenshots/settings.webp" width="55%" alt="设置"/><br/>
   <sub>设置</sub>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/about.webp" width="32%" alt="关于"/><br/>
+  <img src="docs/screenshots/about.webp" width="55%" alt="关于"/><br/>
   <sub>关于</sub>
 </p>
 
