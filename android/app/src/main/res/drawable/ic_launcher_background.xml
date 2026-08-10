@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PrivaGate 图标背景：深紫→藏青 45° 渐变（左上→右下，与 legacy 一致） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="315"
+        android:startColor="#2A1858"
+        android:endColor="#0D1B3C"
+        android:centerColor="#1C1348" />
+</shape>

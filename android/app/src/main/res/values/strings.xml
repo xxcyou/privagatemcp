@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="a11y_description">为 RootMCP 提供界面读取与全局操作能力（可选），用于 MCP 工具的 UI 自动化功能：读取屏幕结构、模拟点击/输入/返回/滑动。</string>
+</resources>
