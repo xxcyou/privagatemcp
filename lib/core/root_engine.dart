@@ -18,6 +18,9 @@ class RootEngine {
   Future<ExecResult> Function(String command, Duration timeout)?
       shizukuRunner;
 
+  /// 危险命令执行策略（由上层 AppState 同步；默认严格）
+  DangerPolicy dangerPolicy = DangerPolicy.strict;
+
   static const List<String> _suCandidates = [
     '/data/adb/ksu/bin/su', // SukiSU-Ultra / KernelSU
     '/data/adb/ap/bin/su', // APatch
@@ -100,23 +103,50 @@ class RootEngine {
     Duration timeout = const Duration(seconds: 60),
     String? cwd,
   }) async {
-    // 高危命令拦截（注入/破坏性命令，root 在手也不放行）
-    final blocked = _guard(command);
-    if (blocked != null) {
+    // 高危命令拦截（可配置策略；绝对红线任何模式都拦）
+    final danger = _guard(command);
+    if (danger != null) {
+      final blocked = danger.isAbsolute || dangerPolicy == DangerPolicy.strict;
       await AuditLog.append(
         command: command,
         asRoot: asRoot,
-        exitCode: -2,
+        exitCode: blocked ? -2 : 0,
         elapsedMs: 0,
-        note: 'blocked: $blocked',
+        note: blocked
+            ? 'blocked: ${danger.reason}'
+            : 'danger-executed: ${danger.reason} (policy=${dangerPolicy.name})',
       );
+      if (blocked) {
+        return ExecResult(
+          exitCode: -2,
+          stdout: '',
+          stderr: '🚫 高危命令已拦截（${danger.reason}）\n'
+              '$command\n'
+              '如需执行刷机/分区等操作，可在设置页将「危险命令策略」切为警告/关闭',
+        );
+      }
+      // warn/off：放行，但结果头部加提示
+      final r = await _runGuarded(command, asRoot: asRoot, timeout: timeout, cwd: cwd);
       return ExecResult(
-        exitCode: -2,
-        stdout: '',
-        stderr: '🚫 高危命令已拦截（$blocked）\n$command',
+        exitCode: r.exitCode,
+        stdout: '⚠ 危险命令已放行（${danger.reason}，策略=${dangerPolicy.label}）\n'
+            '${r.stdout}',
+        stderr: r.stderr,
+        timedOut: r.timedOut,
+        truncated: r.truncated,
+        originalLen: r.originalLen,
       );
     }
+    return _runGuarded(command, asRoot: asRoot, timeout: timeout, cwd: cwd);
+  }
 
+  /// 实际执行（含审计），拦截检查通过后调用
+  Future<ExecResult> _runGuarded(
+    String command, {
+    required bool asRoot,
+    required Duration timeout,
+    String? cwd,
+  }) async {
     final sw = Stopwatch()..start();
     var result = const ExecResult(exitCode: -1, stdout: '', stderr: '');
     try {
@@ -239,34 +269,35 @@ class RootEngine {
   static String sq(String s) => "'${s.replaceAll("'", "'\\''")}'";
 
   // ── 高危命令拦截 ──────────────────────────────────────────────
-  // 命中任一规则直接拒绝执行（root 在手也不放行），并写入审计。
-  // 规则匹配「命令边界」，避免误伤正常调试命令（如 rm /data/local/tmp/x）。
-  static final List<(RegExp, String)> _guardRules = [
-    // 1. 删除根目录 / 或 /*
+  // 命中规则返回 (reason, isAbsolute)；
+  //   isAbsolute=true  → 绝对红线，任何策略都拦截（删根目录/fork炸弹）
+  //   isAbsolute=false → 可配置：strict 拦截，warn/off 放行但审计标记
+  // 规则匹配「命令边界」，避免误伤正常命令（如 rm -rf /data/病毒目录）。
+  static final List<(RegExp, String, bool)> _guardRules = [
+    // 绝对红线
     (RegExp(r'(^|[;&|\s])rm\s+(-[a-zA-Z]*[rf][a-zA-Z]*\s+)+/(\s|$|\*)'),
-        '禁止删除根目录'),
-    // 2. 删除关键分区根目录（/data /system /vendor /cache /boot /etc /dev /proc /sys /product /apex）
+        '禁止删除根目录 /', true),
+    (RegExp(r':\(\)\s*\{\s*:\|:&\s*\};:'), '禁止 fork 炸弹', true),
+    // 可配置：关键分区根级删除（/data/具体路径不受限，可清病毒）
     (RegExp(
             r'(^|[;&|\s])rm\s+(-[a-zA-Z]*[rf][a-zA-Z]*\s+)+/(data|system|vendor|cache|boot|etc|dev|proc|sys|product|apex)(\s|$|\*)'),
-        '禁止删除关键系统分区'),
-    // 3. 块设备直写 / 分区重写（dd 写 /dev/block 等）
+        '删除关键系统分区根目录', false),
+    // 可配置：块设备直写 / 分区重写（刷机场景需要）
     (RegExp(r'(^|[;&|\s])dd\s+.*of=/dev/(sd|block|mmc|disk)\w*'),
-        '禁止直接写入块设备'),
+        'dd 直接写入块设备', false),
     (RegExp(r'(^|[;&|\s])[^>]{0,60}>\s*/dev/(sd|block|mmc|disk)'),
-        '禁止重定向到块设备'),
-    // 4. 格式化 / 分区工具
+        '重定向到块设备', false),
+    // 可配置：格式化 / 分区工具
     (RegExp(r'(^|[;&|\s])(mkfs|mke2fs|mkfs\.\w+|fdisk|parted)\b'),
-        '禁止格式化/分区操作'),
-    (RegExp(r'(^|[;&|\s])format\b'), '禁止格式化操作'),
-    // 5. fork 炸弹
-    (RegExp(r':\(\)\s*\{\s*:\|:&\s*\};:'), '禁止 fork 炸弹'),
+        '格式化/分区操作', false),
+    (RegExp(r'(^|[;&|\s])format\b'), '格式化操作', false),
   ];
 
-  /// 返回 null 表示放行；否则返回被拦截的原因
-  static String? _guard(String command) {
+  /// 返回 null 表示放行；否则返回拦截信息
+  static ({String reason, bool isAbsolute})? _guard(String command) {
     final c = command.trim();
-    for (final (re, why) in _guardRules) {
-      if (re.hasMatch(c)) return why;
+    for (final (re, why, abs) in _guardRules) {
+      if (re.hasMatch(c)) return (reason: why, isAbsolute: abs);
     }
     return null;
   }

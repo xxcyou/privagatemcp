@@ -328,6 +328,7 @@ class McpService {
         return CallToolResult.fromStructuredContent({
           ...capped.toJson(),
           'elevated_as': _elevation(asRoot),
+          'danger_policy': engine.dangerPolicy.name,
         });
       },
     );

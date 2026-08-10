@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/models.dart';
 import '../../core/permissions.dart';
 import '../../state/app_state.dart';
 import '../theme.dart';
@@ -518,6 +519,49 @@ class SettingsPage extends StatelessWidget {
                 '⚠ 重新生成后，所有已连接的客户端需要更新 Token',
                 style: TextStyle(fontSize: 11.5, color: DS.textTertiary),
               ),
+              const SizedBox(height: DS.sp20),
+              Divider(height: 1, color: DS.divider),
+              const SizedBox(height: DS.sp20),
+              Row(
+                children: [
+                  Icon(Icons.gpp_maybe_rounded, size: 18, color: DS.warn),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('危险命令策略',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: DS.textPrimary)),
+                        const SizedBox(height: 2),
+                        Text(
+                          '控制 dd/mkfs/rm 关键分区等高危命令：严格=拦截；警告=放行+审计标记；关闭=全部放行（刷机等场景）',
+                          style: TextStyle(
+                              fontSize: 11.5,
+                              height: 1.5,
+                              color: DS.textTertiary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  for (final p in DangerPolicy.values) ...[
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            right: p == DangerPolicy.values.last ? 0 : 8),
+                        child: _dangerChip(context, app, p),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
         ),
@@ -688,6 +732,51 @@ class SettingsPage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  /// 危险命令策略选择片（严格=红 / 警告=橙 / 关闭=灰）
+  Widget _dangerChip(BuildContext context, AppState app, DangerPolicy p) {
+    final selected = app.dangerPolicy == p;
+    final color = switch (p) {
+      DangerPolicy.strict => DS.danger,
+      DangerPolicy.warn => DS.warn,
+      DangerPolicy.off => DS.textSecondary,
+    };
+    return GestureDetector(
+      onTap: () => app.setDangerPolicy(p),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(DS.r12),
+          color: selected ? color.withValues(alpha: 0.16) : DS.surfaceAlt,
+          border: Border.all(
+            color: selected ? color : DS.borderStrong,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              p.label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                color: selected ? color : DS.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              p == DangerPolicy.strict
+                  ? '拦截'
+                  : (p == DangerPolicy.warn ? '放行+审计' : '全放行'),
+              style: TextStyle(fontSize: 10, color: DS.textTertiary),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

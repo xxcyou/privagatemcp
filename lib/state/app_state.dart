@@ -19,6 +19,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   static const _kAutoStart = 'auto_start';
   static const _kThemeMode = 'theme_mode';
   static const _kThemeIndex = 'theme_index';
+  static const _kDangerPolicy = 'danger_policy';
 
   final RootEngine engine = RootEngine();
   late final McpService mcp;
@@ -34,6 +35,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// 配色方案下标（appThemeDefs）
   int themeIndex = 0;
+
+  /// 危险命令执行策略（默认严格拦截）
+  DangerPolicy dangerPolicy = DangerPolicy.strict;
 
   RootStatus? rootStatus;
   Permissions permissions = Permissions();
@@ -73,6 +77,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       _ => ThemeMode.dark,
     };
     themeIndex = _prefs!.getInt(_kThemeIndex) ?? 0;
+    dangerPolicy = DangerPolicy.values[(_prefs!.getInt(_kDangerPolicy) ?? 0)
+        .clamp(0, DangerPolicy.values.length - 1)];
+    engine.dangerPolicy = dangerPolicy;
 
     if (token.isEmpty) {
       token = _generateToken();
@@ -370,6 +377,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> setThemeIndex(int i) async {
     themeIndex = i;
     await _prefs?.setInt(_kThemeIndex, i);
+    notifyListeners();
+  }
+
+  Future<void> setDangerPolicy(DangerPolicy p) async {
+    dangerPolicy = p;
+    engine.dangerPolicy = p;
+    await _prefs?.setInt(_kDangerPolicy, p.index);
     notifyListeners();
   }
 

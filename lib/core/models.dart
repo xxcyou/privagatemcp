@@ -67,6 +67,17 @@ class LogEntry {
       LogEntry('error', m, detail: detail);
 }
 
+/// 危险命令执行策略：strict=拦截(默认) / warn=放行但审计标记 / off=全部放行
+enum DangerPolicy {
+  strict('严格', '拦截所有高危命令(dd/mkfs/rm 关键分区)'),
+  warn('警告', '放行但审计标记 + 返回提示'),
+  off('关闭', '全部放行(刷机等场景，风险自负)');
+
+  const DangerPolicy(this.label, this.desc);
+  final String label;
+  final String desc;
+}
+
 /// MCP 工具总数（首页/工具页展示用，实际按权限动态注册）
 const int kToolCount = 75;
 
