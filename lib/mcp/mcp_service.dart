@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:mcp_dart/mcp_dart.dart';
 
+import '../core/audit.dart';
 import '../core/models.dart';
 import '../core/native_bridge.dart';
 import '../core/permissions.dart';
@@ -585,6 +586,10 @@ class McpService {
         final lines = (args['lines'] as num?)?.toInt() ?? 200;
         final level = args['level'] as String?;
         final tag = (args['tag'] as String?)?.trim();
+        if (tag != null &&
+            (tag.isEmpty || !RegExp(r'^[a-zA-Z0-9._*:/-]{1,40}$').hasMatch(tag))) {
+          return _err('参数 tag 无效');
+        }
         final filter = (tag != null && tag.isNotEmpty && level != null)
             ? '$tag:$level'
             : (tag != null && tag.isNotEmpty ? '$tag:*' : null);
@@ -615,10 +620,39 @@ class McpService {
           return _err('参数 service 无效');
         }
         final extra = (args['args'] as String?)?.trim() ?? '';
+        if (extra.isNotEmpty &&
+            !RegExp(r'^[a-zA-Z0-9._\- /]{1,80}$').hasMatch(extra)) {
+          return _err('参数 args 含非法字符');
+        }
         onLog(LogEntry.info('dumpsys: $service $extra'));
         final r = await engine.run('dumpsys $service $extra',
             asRoot: true, timeout: const Duration(seconds: 30));
         return CallToolResult.fromStructuredContent(_cap(r).toJson());
+      },
+    );
+
+    server.registerTool(
+      'audit_log',
+      description: '读取命令审计日志（最近 N 条，JSON 行）：每条 root/shell 执行的命令、时间、退出码、耗时都会落盘，用于排查 AI 执行过什么',
+      inputSchema: JsonSchema.object(
+        properties: {
+          'tail': JsonSchema.integer(
+              description: '最近 N 条（默认 50，最大 200）',
+              minimum: 1,
+              maximum: 200,
+              defaultValue: 50),
+        },
+        required: [],
+      ),
+      callback: (args, extra) async {
+        _bump();
+        final tail = ((args['tail'] as num?)?.toInt() ?? 50).clamp(1, 200);
+        onLog(LogEntry.info('audit_log: tail=$tail'));
+        final content = await AuditLog.read(tail: tail);
+        return _structured({
+          'audit_path': AuditLog.path ?? '(unavailable)',
+          'entries': content,
+        });
       },
     );
 
@@ -2177,11 +2211,12 @@ class McpService {
   }
 
   ExecResult _cap(ExecResult r) {
-    const maxLen = 1024 * 1024; // 1MB
+    const maxLen = 128 * 1024; // 128KB：防止超大输出堵死 MCP 通道 / 打爆 AI 用量
     var out = r.stdout;
     var truncated = r.truncated;
+    final originalLen = out.length;
     if (out.length > maxLen) {
-      out = '${out.substring(0, maxLen)}\n...[truncated]';
+      out = '${out.substring(0, maxLen)}\n...[truncated ${out.length - maxLen} bytes, 共 $originalLen bytes；可用 lines/过滤参数缩小范围]';
       truncated = true;
     }
     return ExecResult(
@@ -2190,6 +2225,7 @@ class McpService {
       stderr: r.stderr,
       timedOut: r.timedOut,
       truncated: truncated,
+      originalLen: originalLen,
     );
   }
 

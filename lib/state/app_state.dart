@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/audit.dart';
 import '../core/foreground_service.dart';
 import '../core/models.dart';
 import '../core/native_bridge.dart';
@@ -60,6 +61,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> init() async {
+    await AuditLog.init();
     _prefs = await SharedPreferences.getInstance();
     port = _prefs!.getInt(_kPort) ?? 8787;
     token = _prefs!.getString(_kToken) ?? '';

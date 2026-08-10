@@ -89,6 +89,14 @@ const _tools = [
     params: ['service', 'args'],
   ),
   McpToolInfo(
+    name: 'audit_log',
+    description: '读取命令审计日志（每条 root/shell 执行落盘，排查 AI 执行过什么）',
+    example: 'audit_log(tail: 20)',
+    icon: Icons.fact_check_rounded,
+    color: Color(0xFFFFB74D),
+    params: ['tail'],
+  ),
+  McpToolInfo(
     name: 'set_prop',
     description: '设置系统属性（root，立即生效）',
     example: 'set_prop(name: "debug.hwui.profile", value: "true")',

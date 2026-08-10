@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'audit.dart';
 import 'models.dart';
 
 /// Root 引擎：探测 su（优先 SukiSU-Ultra / KernelSU 路径）并以 root 执行命令
@@ -99,38 +100,72 @@ class RootEngine {
     Duration timeout = const Duration(seconds: 60),
     String? cwd,
   }) async {
+    // 高危命令拦截（注入/破坏性命令，root 在手也不放行）
+    final blocked = _guard(command);
+    if (blocked != null) {
+      await AuditLog.append(
+        command: command,
+        asRoot: asRoot,
+        exitCode: -2,
+        elapsedMs: 0,
+        note: 'blocked: $blocked',
+      );
+      return ExecResult(
+        exitCode: -2,
+        stdout: '',
+        stderr: '🚫 高危命令已拦截（$blocked）\n$command',
+      );
+    }
+
+    final sw = Stopwatch()..start();
+    var result = const ExecResult(exitCode: -1, stdout: '', stderr: '');
     try {
       if (asRoot) {
         if (_isRooted && _suPath != null) {
-          return _exec(() => Process.run(_suPath!, ['-c', command],
+          result = await _exec(() => Process.run(_suPath!, ['-c', command],
               workingDirectory: cwd), timeout);
-        }
-        if (_suiOk) {
-          return _exec(() => Process.run(_suiBin, ['-c', command],
+        } else if (_suiOk) {
+          result = await _exec(() => Process.run(_suiBin, ['-c', command],
               workingDirectory: cwd), timeout);
+        } else {
+          final shizuku = shizukuRunner;
+          if (shizuku != null) {
+            result = await shizuku(command, timeout);
+          } else {
+            result = const ExecResult(
+              exitCode: -1,
+              stdout: '',
+              stderr: '无可用权限：需要 root / sui / shizuku（设置页可开启）',
+            );
+          }
         }
-        final shizuku = shizukuRunner;
-        if (shizuku != null) {
-          return await shizuku(command, timeout);
-        }
-        return const ExecResult(
-          exitCode: -1,
-          stdout: '',
-          stderr: '无可用权限：需要 root / sui / shizuku（设置页可开启）',
-        );
+      } else {
+        result = await _exec(() => Process.run('sh', ['-c', command],
+            workingDirectory: cwd), timeout);
       }
-      return _exec(() => Process.run('sh', ['-c', command],
-          workingDirectory: cwd), timeout);
     } on TimeoutException {
-      return ExecResult(
+      result = ExecResult(
         exitCode: -1,
         stdout: '',
         stderr: '⏱ 命令超时（${timeout.inSeconds}s）',
         timedOut: true,
       );
     } on ProcessException catch (e) {
-      return ExecResult(exitCode: -1, stdout: '', stderr: e.message);
+      result = ExecResult(exitCode: -1, stdout: '', stderr: e.message);
+    } finally {
+      sw.stop();
+      // 审计：每条执行命令落盘
+      await AuditLog.append(
+        command: command,
+        asRoot: asRoot,
+        exitCode: result.exitCode,
+        elapsedMs: sw.elapsedMilliseconds,
+        outLen: result.stdout.length,
+        errLen: result.stderr.length,
+        truncated: result.truncated,
+      );
     }
+    return result;
   }
 
   Future<ExecResult> _exec(
@@ -202,4 +237,37 @@ class RootEngine {
 
   /// shell 单引号转义（公开，供 MCP 层复用）
   static String sq(String s) => "'${s.replaceAll("'", "'\\''")}'";
+
+  // ── 高危命令拦截 ──────────────────────────────────────────────
+  // 命中任一规则直接拒绝执行（root 在手也不放行），并写入审计。
+  // 规则匹配「命令边界」，避免误伤正常调试命令（如 rm /data/local/tmp/x）。
+  static final List<(RegExp, String)> _guardRules = [
+    // 1. 删除根目录 / 或 /*
+    (RegExp(r'(^|[;&|\s])rm\s+(-[a-zA-Z]*[rf][a-zA-Z]*\s+)+/(\s|$|\*)'),
+        '禁止删除根目录'),
+    // 2. 删除关键分区根目录（/data /system /vendor /cache /boot /etc /dev /proc /sys /product /apex）
+    (RegExp(
+            r'(^|[;&|\s])rm\s+(-[a-zA-Z]*[rf][a-zA-Z]*\s+)+/(data|system|vendor|cache|boot|etc|dev|proc|sys|product|apex)(\s|$|\*)'),
+        '禁止删除关键系统分区'),
+    // 3. 块设备直写 / 分区重写（dd 写 /dev/block 等）
+    (RegExp(r'(^|[;&|\s])dd\s+.*of=/dev/(sd|block|mmc|disk)\w*'),
+        '禁止直接写入块设备'),
+    (RegExp(r'(^|[;&|\s])[^>]{0,60}>\s*/dev/(sd|block|mmc|disk)'),
+        '禁止重定向到块设备'),
+    // 4. 格式化 / 分区工具
+    (RegExp(r'(^|[;&|\s])(mkfs|mke2fs|mkfs\.\w+|fdisk|parted)\b'),
+        '禁止格式化/分区操作'),
+    (RegExp(r'(^|[;&|\s])format\b'), '禁止格式化操作'),
+    // 5. fork 炸弹
+    (RegExp(r':\(\)\s*\{\s*:\|:&\s*\};:'), '禁止 fork 炸弹'),
+  ];
+
+  /// 返回 null 表示放行；否则返回被拦截的原因
+  static String? _guard(String command) {
+    final c = command.trim();
+    for (final (re, why) in _guardRules) {
+      if (re.hasMatch(c)) return why;
+    }
+    return null;
+  }
 }

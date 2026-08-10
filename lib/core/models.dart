@@ -26,6 +26,7 @@ class ExecResult {
   final String stderr;
   final bool timedOut;
   final bool truncated;
+  final int originalLen;
 
   const ExecResult({
     required this.exitCode,
@@ -33,6 +34,7 @@ class ExecResult {
     required this.stderr,
     this.timedOut = false,
     this.truncated = false,
+    this.originalLen = 0,
   });
 
   bool get isOk => exitCode == 0 && !timedOut;
@@ -43,6 +45,7 @@ class ExecResult {
         'stderr': stderr,
         'timed_out': timedOut,
         'truncated': truncated,
+        'output_bytes': originalLen,
       };
 }
 
@@ -65,7 +68,7 @@ class LogEntry {
 }
 
 /// MCP 工具总数（首页/工具页展示用，实际按权限动态注册）
-const int kToolCount = 74;
+const int kToolCount = 75;
 
 /// MCP 工具元信息（工具页展示用）
 class McpToolInfo {
