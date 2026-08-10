@@ -6,6 +6,19 @@
 
 ## ✨ 功能
 
+## 📱 界面预览
+
+<p align="center">
+  <img src="docs/screenshots/home.webp" width="22%" alt="首页"/>
+  <img src="docs/screenshots/tools.webp" width="22%" alt="工具"/>
+  <img src="docs/screenshots/logs.webp" width="22%" alt="日志"/>
+  <img src="docs/screenshots/settings.webp" width="22%" alt="设置"/>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/about.webp" width="22%" alt="关于"/>
+</p>
+
 - **权限降级链**:`root → Sui → Shizuku` 自动降级,没有 root 也能用 shell 级能力
 - **74 个 MCP 工具**,覆盖 22 项权限:
   - shell: `exec` / `read_file` / `write_file` / `list_dir` / `dumpsys` / `logcat` / `set_prop` / `input_event` …
