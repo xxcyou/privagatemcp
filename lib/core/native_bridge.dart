@@ -6,16 +6,16 @@ import 'models.dart';
 
 /// 原生能力桥：Shizuku / 无障碍 / 屏幕捕获
 class NativeBridge {
-  static const _shizuku = MethodChannel('root_mcp/shizuku');
-  static const _a11y = MethodChannel('root_mcp/a11y');
-  static const _capture = MethodChannel('root_mcp/capture');
-  static const _perms = MethodChannel('root_mcp/permissions');
-  static const _location = MethodChannel('root_mcp/location');
-  static const _notifications = MethodChannel('root_mcp/notifications');
-  static const _overlay = MethodChannel('root_mcp/overlay');
-  static const _media = MethodChannel('root_mcp/media');
-  static const _data = MethodChannel('root_mcp/data');
-  static const _device = MethodChannel('root_mcp/device');
+  static const _shizuku = MethodChannel('privagate/shizuku');
+  static const _a11y = MethodChannel('privagate/a11y');
+  static const _capture = MethodChannel('privagate/capture');
+  static const _perms = MethodChannel('privagate/permissions');
+  static const _location = MethodChannel('privagate/location');
+  static const _notifications = MethodChannel('privagate/notifications');
+  static const _overlay = MethodChannel('privagate/overlay');
+  static const _media = MethodChannel('privagate/media');
+  static const _data = MethodChannel('privagate/data');
+  static const _device = MethodChannel('privagate/device');
 
   // ---------- Shizuku ----------
 

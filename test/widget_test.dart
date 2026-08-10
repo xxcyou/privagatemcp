@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:root_mcp/ui/theme.dart';
+import 'package:privagate_mcp/ui/theme.dart';
 
 void main() {
   test('深色主题可构建', () {

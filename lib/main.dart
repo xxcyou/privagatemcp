@@ -9,13 +9,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final app = AppState();
   await app.init();
-  runApp(RootMcpApp(app: app));
+  runApp(PrivaGateApp(app: app));
 }
 
-class RootMcpApp extends StatelessWidget {
+class PrivaGateApp extends StatelessWidget {
   final AppState app;
 
-  const RootMcpApp({super.key, required this.app});
+  const PrivaGateApp({super.key, required this.app});
 
   @override
   Widget build(BuildContext context) {

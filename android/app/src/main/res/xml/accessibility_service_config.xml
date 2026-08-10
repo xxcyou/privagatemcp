@@ -7,4 +7,4 @@
     android:canPerformGestures="true"
     android:description="@string/a11y_description"
     android:notificationTimeout="100"
-    android:settingsActivity="com.sukishell.root_mcp.MainActivity"/>
+    android:settingsActivity="com.privagatemcp.MainActivity"/>

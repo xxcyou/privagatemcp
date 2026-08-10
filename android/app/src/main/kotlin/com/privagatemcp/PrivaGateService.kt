@@ -1,4 +1,4 @@
-package com.sukishell.root_mcp
+package com.privagatemcp
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,7 +12,7 @@ import android.os.IBinder
 import androidx.core.app.ServiceCompat
 
 /** 前台服务：保持 App 进程存活 + MediaProjection 会话要求 */
-class RootMcpService : Service() {
+class PrivaGateService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 

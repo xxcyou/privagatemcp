@@ -1,4 +1,4 @@
-package com.sukishell.root_mcp
+package com.privagatemcp
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter

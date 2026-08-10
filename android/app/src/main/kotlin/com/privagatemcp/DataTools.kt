@@ -1,4 +1,4 @@
-package com.sukishell.root_mcp
+package com.privagatemcp
 
 import android.app.usage.UsageStatsManager
 import android.content.ContentProviderOperation

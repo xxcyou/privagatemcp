@@ -1,4 +1,4 @@
-package com.sukishell.root_mcp
+package com.privagatemcp
 
 import android.Manifest
 import android.content.Context
@@ -100,7 +100,7 @@ object PermHelper {
             context.contentResolver,
             "enabled_notification_listeners"
         ) ?: return false
-        return flat.split(':').any { it.contains("RootMcpNotificationListener") }
+        return flat.split(':').any { it.contains("PrivaGateNotificationListener") }
     }
 
     /** 无障碍服务是否在系统侧启用（查设置，不依赖进程内 instance） */
@@ -109,7 +109,7 @@ object PermHelper {
             context.contentResolver,
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
         ) ?: return false
-        return flat.split(':').any { it.contains("RootMcpAccessibilityService") }
+        return flat.split(':').any { it.contains("PrivaGateAccessibilityService") }
     }
 
     fun isPostNotificationsGranted(context: Context): Boolean {

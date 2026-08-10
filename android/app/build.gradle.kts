@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.sukishell.root_mcp"
+    namespace = "com.privagatemcp"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.sukishell.root_mcp"
+        applicationId = "com.privagatemcp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // 最低支持 Android 9（API 28）

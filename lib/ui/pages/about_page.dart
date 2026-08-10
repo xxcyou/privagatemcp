@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/models.dart';
 import '../../core/permissions.dart';
@@ -116,6 +117,85 @@ class AboutPage extends StatelessWidget {
               ),
               const SizedBox(height: DS.sp24),
 
+              // 开源信息
+              const SectionHeader(title: '开源'),
+              AppCard(
+                padding: const EdgeInsets.all(DS.sp20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    InkWell(
+                      borderRadius: BorderRadius.circular(DS.r12),
+                      onTap: () => _openUrl('https://github.com/xxcyou/privagatemcp'),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: DS.brand.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(DS.r12),
+                              ),
+                              child: Icon(Icons.code_rounded, size: 18, color: DS.brandSoft),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('项目地址', style: DS.h2),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'github.com/xxcyou/privagatemcp',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: DS.brandSoft,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.open_in_new_rounded, size: 16, color: DS.textTertiary),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Divider(height: 24, color: DS.divider),
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: DS.ok.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(DS.r12),
+                          ),
+                          child: Icon(Icons.balance_rounded, size: 18, color: DS.ok),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('许可证', style: DS.h2),
+                              const SizedBox(height: 2),
+                              Text(
+                                'GNU GPL v3 · 自由软件，可修改再分发，衍生作品必须同样开源',
+                                style: TextStyle(fontSize: 12, height: 1.4, color: DS.textTertiary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: DS.sp24),
+
               // 免责声明
               const SectionHeader(title: '免责声明'),
               AppCard(
@@ -160,6 +240,10 @@ class AboutPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _openUrl(String url) {
+    launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
   Widget _feature(IconData icon, String title, String desc) {

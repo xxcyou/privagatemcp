@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 
 /// 与原生前台服务通信（保持进程存活）
 class ForegroundService {
-  static const _channel = MethodChannel('root_mcp/foreground');
+  static const _channel = MethodChannel('privagate/foreground');
 
   static Future<void> start() async {
     try {

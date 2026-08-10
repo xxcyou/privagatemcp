@@ -1,4 +1,4 @@
-package com.sukishell.root_mcp
+package com.privagatemcp
 
 import android.app.Activity
 import android.content.Context
@@ -30,13 +30,13 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/foreground")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/foreground")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "start" -> {
                         maybeRequestNotificationPermission()
                         try {
-                            val intent = Intent(this, RootMcpService::class.java)
+                            val intent = Intent(this, PrivaGateService::class.java)
                             if (Build.VERSION.SDK_INT >= 26) {
                                 startForegroundService(intent)
                             } else {
@@ -48,14 +48,14 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                     "stop" -> {
-                        stopService(Intent(this, RootMcpService::class.java))
+                        stopService(Intent(this, PrivaGateService::class.java))
                         result.success(true)
                     }
                     else -> result.notImplemented()
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/shizuku")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/shizuku")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "isAvailable" -> result.success(Shizuku.pingBinder())
@@ -101,32 +101,32 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/a11y")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/a11y")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "isEnabled" -> result.success(PermHelper.isAccessibilityEnabled(this))
-                    "dump" -> result.success(RootMcpAccessibilityService.dump())
+                    "dump" -> result.success(PrivaGateAccessibilityService.dump())
                     "click" -> result.success(
-                        RootMcpAccessibilityService.clickNode(
+                        PrivaGateAccessibilityService.clickNode(
                             call.argument<String>("text"), call.argument<Double>("x")?.toFloat(), call.argument<Double>("y")?.toFloat()
                         )
                     )
                     "longClick" -> result.success(
-                        RootMcpAccessibilityService.clickNode(
+                        PrivaGateAccessibilityService.clickNode(
                             call.argument<String>("text"), call.argument<Double>("x")?.toFloat(), call.argument<Double>("y")?.toFloat(), longClick = true
                         )
                     )
                     "setText" -> result.success(
-                        RootMcpAccessibilityService.setText(call.argument<String>("text") ?: "")
+                        PrivaGateAccessibilityService.setText(call.argument<String>("text") ?: "")
                     )
                     "global" -> result.success(
-                        RootMcpAccessibilityService.globalAction(call.argument<String>("action") ?: "")
+                        PrivaGateAccessibilityService.globalAction(call.argument<String>("action") ?: "")
                     )
                     "scroll" -> result.success(
-                        RootMcpAccessibilityService.scroll(call.argument<String>("direction") ?: "forward")
+                        PrivaGateAccessibilityService.scroll(call.argument<String>("direction") ?: "forward")
                     )
                     "swipe" -> result.success(
-                        RootMcpAccessibilityService.swipe(
+                        PrivaGateAccessibilityService.swipe(
                             call.argument<Double>("x1")?.toFloat() ?: 0f,
                             call.argument<Double>("y1")?.toFloat() ?: 0f,
                             call.argument<Double>("x2")?.toFloat() ?: 0f,
@@ -142,7 +142,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/permissions")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/permissions")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "checkAll" -> result.success(PermHelper.checkAll(this))
@@ -179,7 +179,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/location")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/location")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "get" -> {
@@ -230,23 +230,23 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/notifications")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/notifications")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
-                    "isConnected" -> result.success(RootMcpNotificationListener.connected)
-                    "list" -> result.success(RootMcpNotificationListener.snapshot)
+                    "isConnected" -> result.success(PrivaGateNotificationListener.connected)
+                    "list" -> result.success(PrivaGateNotificationListener.snapshot)
                     "open" -> result.success(
-                        RootMcpNotificationListener().openNotification(call.argument<String>("key") ?: "")
+                        PrivaGateNotificationListener().openNotification(call.argument<String>("key") ?: "")
                     )
                     "clear" -> result.success(
-                        RootMcpNotificationListener().clearNotification(call.argument<String>("key") ?: "")
+                        PrivaGateNotificationListener().clearNotification(call.argument<String>("key") ?: "")
                     )
-                    "clearAll" -> result.success(RootMcpNotificationListener().clearAll())
+                    "clearAll" -> result.success(PrivaGateNotificationListener().clearAll())
                     else -> result.notImplemented()
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/media")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/media")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "photo" -> {
@@ -278,7 +278,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/overlay")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/overlay")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "show" -> {
@@ -290,7 +290,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/data")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/data")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "smsList" -> {
@@ -383,7 +383,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/device")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/device")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "clipboardGet" -> result.success(DeviceTools.clipboardGet(this))
@@ -414,7 +414,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "root_mcp/capture")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/capture")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "requestPermission" -> {
@@ -435,7 +435,7 @@ class MainActivity : FlutterActivity() {
                     }
                     "stop" -> {
                         ScreenCapture.stop()
-                        stopService(Intent(this, RootMcpService::class.java))
+                        stopService(Intent(this, PrivaGateService::class.java))
                         result.success(true)
                     }
                     else -> result.notImplemented()
@@ -474,13 +474,13 @@ class MainActivity : FlutterActivity() {
                 ScreenCapture.start(this, data)
             } else {
                 // 用户拒绝授权 → 停掉 mediaProjection FGS
-                stopService(Intent(this, RootMcpService::class.java))
+                stopService(Intent(this, PrivaGateService::class.java))
             }
         }
     }
 
     private fun startCaptureFgs() {
-        val intent = Intent(this, RootMcpService::class.java)
+        val intent = Intent(this, PrivaGateService::class.java)
             .putExtra("media_projection", true)
         if (Build.VERSION.SDK_INT >= 26) {
             startForegroundService(intent)

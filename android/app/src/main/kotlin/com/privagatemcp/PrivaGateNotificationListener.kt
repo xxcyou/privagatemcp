@@ -1,4 +1,4 @@
-package com.sukishell.root_mcp
+package com.privagatemcp
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -6,7 +6,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 
 /** 通知读取服务：缓存活动通知，供 MCP 工具查询/操作 */
-class RootMcpNotificationListener : NotificationListenerService() {
+class PrivaGateNotificationListener : NotificationListenerService() {
 
     companion object {
         @Volatile

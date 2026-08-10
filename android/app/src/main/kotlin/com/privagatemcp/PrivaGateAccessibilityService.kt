@@ -1,4 +1,4 @@
-package com.sukishell.root_mcp
+package com.privagatemcp
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
@@ -13,10 +13,10 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /** 无障碍服务：读取 UI 结构 + 全局操作 + 模拟点击/滑动 */
-class RootMcpAccessibilityService : AccessibilityService() {
+class PrivaGateAccessibilityService : AccessibilityService() {
 
     companion object {
-        var instance: RootMcpAccessibilityService? = null
+        var instance: PrivaGateAccessibilityService? = null
             private set
 
         private const val MAX_NODES = 400
