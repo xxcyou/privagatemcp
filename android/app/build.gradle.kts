@@ -31,7 +31,7 @@ android {
     signingConfigs {
         create("release") {
             val b64 = System.getenv("KEYSTORE_BASE64")
-            if (b64 != null) {
+            if (!b64.isNullOrBlank()) {
                 val ksFile = File("${project.buildDir}/release.jks")
                 ksFile.writeBytes(Base64.getDecoder().decode(b64))
                 storeFile = ksFile
@@ -46,7 +46,7 @@ android {
         release {
             // CI 配置了 KEYSTORE_BASE64/KEYSTORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD
             // secrets 时用正式签名;否则回退 debug 签名(本地开发/测试构建)
-            signingConfig = if (System.getenv("KEYSTORE_BASE64") != null) {
+            signingConfig = if (!System.getenv("KEYSTORE_BASE64").isNullOrBlank()) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")
