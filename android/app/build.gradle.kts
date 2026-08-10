@@ -26,11 +26,29 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val b64 = System.getenv("KEYSTORE_BASE64")
+            if (b64 != null) {
+                val ksFile = File("${project.buildDir}/release.jks")
+                ksFile.writeBytes(java.util.Base64.getDecoder().decode(b64))
+                storeFile = ksFile
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // CI 配置了 KEYSTORE_BASE64/KEYSTORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD
+            // secrets 时用正式签名;否则回退 debug 签名(本地开发/测试构建)
+            signingConfig = if (System.getenv("KEYSTORE_BASE64") != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
