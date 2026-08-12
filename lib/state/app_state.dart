@@ -20,6 +20,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   static const _kThemeMode = 'theme_mode';
   static const _kThemeIndex = 'theme_index';
   static const _kDangerPolicy = 'danger_policy';
+  static const _kAdbMemory = 'adb_memory';
+  static const _kAdbWasEnabled = 'adb_was_enabled';
 
   final RootEngine engine = RootEngine();
   late final McpService mcp;
@@ -38,6 +40,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// 危险命令执行策略（默认严格拦截）
   DangerPolicy dangerPolicy = DangerPolicy.strict;
+
+  /// ADB 记忆开关：开启后下次启动 App 自动恢复 ADB 状态
+  bool adbMemory = false;
+
+  /// 上次 ADB 是否处于开启状态（配合 adbMemory 使用）
+  bool adbWasEnabled = false;
 
   RootStatus? rootStatus;
   Permissions permissions = Permissions();
@@ -80,6 +88,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     dangerPolicy = DangerPolicy.values[(_prefs!.getInt(_kDangerPolicy) ?? 0)
         .clamp(0, DangerPolicy.values.length - 1)];
     engine.dangerPolicy = dangerPolicy;
+    adbMemory = _prefs!.getBool(_kAdbMemory) ?? false;
+    adbWasEnabled = _prefs!.getBool(_kAdbWasEnabled) ?? false;
 
     if (token.isEmpty) {
       token = _generateToken();
@@ -96,6 +106,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // 启动自动检查权限（无需手动点检测）
     await refreshPermissions();
     await refreshAdbStatus();
+
+    // ADB 记忆：开关打开且上次是开启状态 → 自动恢复（重启后 setprop 会丢失）
+    if (adbMemory && adbWasEnabled && !adbEnabled) {
+      addLog(LogEntry.info('ADB 记忆：自动恢复开启（上次为开启状态）'));
+      await adbService('start');
+    }
 
     // 监听生命周期：从后台/系统设置页/授权弹窗返回时自动刷新权限
     WidgetsBinding.instance.addObserver(this);
@@ -225,7 +241,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         ? LogEntry.success('ADB $action 完成', detail: r.stdout.trim())
         : LogEntry.error('ADB $action 失败', detail: r.stderr.trim()));
     await refreshAdbStatus();
+    // 记忆上次开关状态（配合「ADB 记忆」开关实现重启自动恢复）
+    if (r.isOk && (action == 'start' || action == 'stop')) {
+      adbWasEnabled = action == 'start';
+      await _prefs?.setBool(_kAdbWasEnabled, adbWasEnabled);
+    }
     return r;
+  }
+
+  /// ADB 记忆开关：开启后下次启动 App 自动恢复 ADB 状态
+  Future<void> setAdbMemory(bool v) async {
+    adbMemory = v;
+    await _prefs?.setBool(_kAdbMemory, v);
+    notifyListeners();
   }
 
   Future<void> requestLocationPerm() async {

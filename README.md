@@ -34,7 +34,7 @@
 </p>
 
 - **权限降级链**:`root → Sui → Shizuku` 自动降级,没有 root 也能用 shell 级能力
-- **74 个 MCP 工具**,覆盖 22 项权限:
+- **75 个 MCP 工具**,覆盖 22 项权限:
   - shell: `exec` / `read_file` / `write_file` / `list_dir` / `dumpsys` / `logcat` / `set_prop` / `input_event` …
   - 存储: `storage_list` / `mkdir` / `delete` / `move` / `copy` / `stat` / `read` / `write` / `touch` / `disk`
   - 系统: 电话 / WiFi / 蓝牙 / 定位 / 使用统计 / 电池 / 传感器 / NFC / 剪贴板
@@ -43,8 +43,9 @@
   - 便捷: 内置 ADB(一键开无线调试)、悬浮窗、通知管理、应用管理
 - **按权限动态注册工具**:未开启的权限不会暴露对应 MCP 工具,工具页同步灰显引导开启
 - **安全设计**:动态 Bearer Token(可随时重新生成)、局域网直连、前台服务保活
+- **连接信息一键复制 JSON**:首页一键复制 `{"url", "token"}` 配置(URL 和 Token 一次搞定),局域网 IP 每 5 秒自动刷新,换 WiFi/内网实时更新
 - **多主题**:6 套配色 × 亮/暗/跟随系统
-- **内置 ADB**:App 内一键开启 `adb connect` 无线调试
+- **内置 ADB**:App 内一键开启 `adb connect` 无线调试,支持「记忆开关」——下次启动 App 自动恢复上次的 ADB 状态
 
 ## 🏗 架构
 

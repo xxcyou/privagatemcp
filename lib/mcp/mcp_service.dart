@@ -40,6 +40,9 @@ class McpService {
   List<String> _lanIps = [];
   int _callCount = 0;
 
+  /// 局域网 IP 定时刷新（IP 变更实时同步到 UI / allowedHosts）
+  Timer? _ipTimer;
+
   McpService({
     required this.engine,
     required this.getToken,
@@ -65,12 +68,17 @@ class McpService {
     _httpServer = await HttpServer.bind(InternetAddress.anyIPv4, port);
     _subs.add(_httpServer!.listen(_handleRequest));
     _running = true;
-    onLog(LogEntry.success('MCP 服务器已启动', detail: '端口 $port'));
+    // 每 5 秒刷新一次局域网 IP：WiFi/蜂窝切换、DHCP 变更时实时更新
+    _ipTimer = Timer.periodic(
+        const Duration(seconds: 5), (_) => refreshIps());
+    onLog(LogEntry.success('MCP 服务器已启动', detail: '端口 $port · IP ${_lanIp ?? '-'}'));
     onStatusChanged();
   }
 
   Future<void> stop() async {
     if (!_running) return;
+    _ipTimer?.cancel();
+    _ipTimer = null;
     for (final s in _sessions.values) {
       try {
         await s.transport.close();
@@ -93,23 +101,59 @@ class McpService {
     onStatusChanged();
   }
 
+  /// 重新收集局域网 IP；发生变化时通知 UI 刷新
+  Future<void> refreshIps() async {
+    final before = _lanIp;
+    await _collectIps();
+    if (before != _lanIp) {
+      onLog(LogEntry.info('局域网 IP 变更: ${before ?? '-'} → ${_lanIp ?? '-'}'));
+      onStatusChanged();
+    }
+  }
+
   Future<void> _collectIps() async {
-    _lanIps = [];
+    final ips = <String, String>{}; // ip -> 接口名
     try {
       final ifs = await NetworkInterface.list(
         type: InternetAddressType.IPv4,
         includeLinkLocal: false,
       );
       for (final i in ifs) {
+        final name = i.name.toLowerCase();
+        // 跳过虚拟隧道/拨号接口，避免把 VPN 等地址当成局域网 IP
+        if (name.contains('tun') || name.contains('ppp') ||
+            name.contains('vpn') || name.contains('dummy')) {
+          continue;
+        }
         for (final a in i.addresses) {
           final ip = a.address;
-          if (!ip.startsWith('127.') && !ip.startsWith('169.254.')) {
-            _lanIps.add(ip);
-          }
+          if (ip.startsWith('127.') || ip.startsWith('169.254.')) continue;
+          ips[ip] = name;
         }
       }
     } catch (_) {}
-    _lanIp = _lanIps.isNotEmpty ? _lanIps.first : null;
+    final sorted = ips.keys.toList()
+      ..sort((a, b) =>
+          _ipScore(a, ips[a]!).compareTo(_ipScore(b, ips[b]!)));
+    _lanIps = sorted;
+    _lanIp = sorted.isNotEmpty ? sorted.first : null;
+  }
+
+  /// IP 展示优先级：wlan/eth 等实体接口 + 局域网私有地址 最优先，
+  /// 其次私有地址，再其次实体接口，最后其余地址
+  int _ipScore(String ip, String name) {
+    final isWifiEth = name.startsWith('wlan') || name.startsWith('eth') ||
+        name.startsWith('en') || name.startsWith('ra') ||
+        name.startsWith('bond') || name.startsWith('ccmni') ||
+        name.startsWith('ap');
+    final parts = ip.split('.');
+    final seg2 = int.tryParse(parts.length > 1 ? parts[1] : '') ?? 0;
+    final isPrivate = ip.startsWith('192.168.') || ip.startsWith('10.') ||
+        (ip.startsWith('172.') && seg2 >= 16 && seg2 <= 31);
+    if (isWifiEth && isPrivate) return 0;
+    if (isPrivate) return 1;
+    if (isWifiEth) return 2;
+    return 3;
   }
 
   // ---------------- HTTP 层 ----------------
@@ -255,7 +299,7 @@ class McpService {
 
   McpServer _newServer() {
     final s = McpServer(
-      const Implementation(name: 'priva-gate-mcp', version: '1.6.0'),
+      const Implementation(name: 'priva-gate-mcp', version: '1.7.0'),
       options: const McpServerOptions(
         capabilities: ServerCapabilities(tools: ServerCapabilitiesTools()),
       ),

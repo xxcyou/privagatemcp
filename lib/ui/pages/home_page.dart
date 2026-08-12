@@ -425,8 +425,17 @@ class HomePage extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _copyChip(context, 'URL', url),
-                        _copyChip(context, 'Token', token),
+                        _copyChip(context, 'URL', url,
+                            icon: Icons.link_rounded),
+                        _copyChip(context, 'Token', token,
+                            icon: Icons.key_rounded),
+                        _copyChip(
+                          context,
+                          'JSON',
+                          jsonEncode({'url': url, 'token': token}),
+                          icon: Icons.data_object_rounded,
+                          highlight: true,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -446,7 +455,14 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _copyChip(BuildContext context, String label, String value) {
+  Widget _copyChip(
+    BuildContext context,
+    String label,
+    String value, {
+    IconData icon = Icons.copy_rounded,
+    bool highlight = false,
+  }) {
+    final color = highlight ? DS.ok : DS.brand;
     return InkWell(
       borderRadius: BorderRadius.circular(10),
       onTap: () {
@@ -463,14 +479,14 @@ class HomePage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
         decoration: BoxDecoration(
-          color: DS.brand.withValues(alpha: 0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: DS.brand.withValues(alpha: 0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.copy_rounded, size: 12, color: DS.brandSoft),
+            Icon(icon, size: 12, color: highlight ? DS.ok : DS.brandSoft),
             const SizedBox(width: 5),
             // Flexible：系统大字（1.3x）下 'Token' 会超宽撑爆 chip
             Flexible(

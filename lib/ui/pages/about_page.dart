@@ -9,7 +9,7 @@ import '../theme.dart';
 import '../widgets/components.dart';
 
 /// 应用版本（与 pubspec.yaml 同步）
-const String kAppVersion = '1.6.0';
+const String kAppVersion = '1.7.0';
 
 /// 关于页：版本 / 功能 / 权限说明 / 免责声明
 class AboutPage extends StatelessWidget {
@@ -84,7 +84,7 @@ class AboutPage extends StatelessWidget {
                         'SukiSU-Ultra / KernelSU / Sui / Shizuku 自动降级链，root 权限稳定执行'),
                     _feature(Icons.hub_rounded, 'MCP 服务器',
                         'Streamable HTTP 协议，AI 客户端经 Bearer Token 安全接入'),
-                    _feature(Icons.apps_rounded, '74 个工具',
+                    _feature(Icons.apps_rounded, '75 个工具',
                         '文件/短信/通讯录/通话/日历/定位/通知/无障碍/截屏/相机/麦克风等'),
                     _feature(Icons.dns_rounded, '内置 ADB',
                         '一键开启无线调试，电脑 adb connect 直连'),

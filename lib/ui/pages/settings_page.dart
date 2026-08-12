@@ -435,6 +435,38 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(Icons.memory_rounded,
+                      size: 17, color: DS.textSecondary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('记忆开关状态',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: DS.textPrimary)),
+                        const SizedBox(height: 2),
+                        Text(
+                          '开启后：下次启动 App 时，若上次 ADB 处于开启状态则自动恢复；关闭则不自动开启',
+                          style: TextStyle(
+                              fontSize: 11.5,
+                              height: 1.4,
+                              color: DS.textTertiary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: app.adbMemory,
+                    onChanged: app.setAdbMemory,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
               Text(
                 '⚠ 开启会断开当前无线调试连接；adb shell 为 uid=2000，需 root 请在 SukiSU 管理器给 shell 授权',
                 style: TextStyle(fontSize: 11, height: 1.45, color: DS.textTertiary),
@@ -603,7 +635,7 @@ class SettingsPage extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                         color: DS.textPrimary)),
                 const SizedBox(height: 2),
-                Text('v1.6.0 · SukiSU-Ultra · mcp_dart · Flutter',
+                Text('v1.7.0 · SukiSU-Ultra · mcp_dart · Flutter',
                     style:
                         TextStyle(fontSize: 11.5, color: DS.textTertiary)),
                 const SizedBox(height: 12),
