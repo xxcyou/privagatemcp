@@ -160,6 +160,9 @@ class DS {
   /// 当前调色板（App 初始化/主题切换时赋值）
   static ThemePalette p = buildPalette(appThemeDefs[0], dark: true);
 
+  /// 简捷模式：关闭渐变/毛玻璃/动画/阴影/装饰，扁平化简洁展示
+  static bool simple = false;
+
   // ---------- 颜色 ----------
   static Color get bg => p.bg;
   static Color get bgElevated => p.bgElevated;

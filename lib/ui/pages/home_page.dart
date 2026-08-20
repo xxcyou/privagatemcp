@@ -10,6 +10,7 @@ import '../../core/permissions.dart';
 import '../../state/app_state.dart';
 import '../theme.dart';
 import '../widgets/components.dart';
+import 'about_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -17,6 +18,8 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    // 简捷模式：无装饰的纯信息列表
+    if (DS.simple) return _simpleHome(context, app);
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -504,6 +507,163 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // ================= 简捷模式：纯信息列表 =================
+
+  Widget _simpleHome(BuildContext context, AppState app) {
+    final running = app.mcp.running;
+    final ip = app.mcp.lanIp ?? '—';
+    final url = 'http://$ip:${app.mcp.port}/mcp';
+    final configJson = jsonEncode({'url': url, 'token': app.token});
+
+    Widget row(String label, String value,
+        {Widget? trailing, Color? valueColor, bool mono = true}) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 88,
+              child: Text(label,
+                  style:
+                      TextStyle(fontSize: 13, color: DS.textSecondary)),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontFamily: mono ? 'monospace' : null,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor ?? DS.textPrimary,
+                ),
+              ),
+            ),
+            if (trailing != null) ...[const SizedBox(width: 10), trailing],
+          ],
+        ),
+      );
+    }
+
+    Widget copyBtn(String label, String value) {
+      return InkWell(
+        onTap: () {
+          Clipboard.setData(ClipboardData(text: value));
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(
+              content: Text('已复制 $label'),
+              duration: const Duration(milliseconds: 1200),
+            ));
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Text(
+            label,
+            style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: DS.brand),
+          ),
+        ),
+      );
+    }
+
+    Widget sep() => Divider(height: 1, color: DS.divider);
+
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'PrivaGate MCP',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: DS.textPrimary),
+              ),
+            ),
+            Text('v$kAppVersion',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                    color: DS.textTertiary)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          running ? 'MCP 服务器运行中' : 'MCP 服务器未启动',
+          style: TextStyle(
+              fontSize: 12.5,
+              color: running ? DS.ok : DS.textTertiary),
+        ),
+        const SizedBox(height: 12),
+        sep(),
+        row(
+          '服务器',
+          running ? '运行中' : '已停止',
+          valueColor: running ? DS.ok : DS.textTertiary,
+          trailing: Switch(
+            value: running,
+            onChanged: (v) => v ? app.startServer() : app.stopServer(),
+          ),
+        ),
+        sep(),
+        row('地址', running ? url : '—', trailing: copyBtn('复制', url)),
+        sep(),
+        row('Token', app.token, trailing: copyBtn('复制', app.token)),
+        sep(),
+        row('配置', 'URL + Token', trailing: copyBtn('JSON', configJson)),
+        sep(),
+        row(
+          '权限',
+          app.permissions.hasShell
+              ? '${app.permissions.shellLevel.label} 可用'
+              : '无权限',
+          valueColor: app.permissions.hasRoot
+              ? DS.ok
+              : (app.permissions.hasShell ? DS.warn : DS.danger),
+          mono: false,
+        ),
+        sep(),
+        row('工具', '$kToolCount 个注册（按权限）', mono: false),
+        sep(),
+        row(
+          'ADB',
+          app.adbEnabled ? '5555 开启' : '未开启',
+          valueColor: app.adbEnabled ? DS.ok : DS.textTertiary,
+          mono: false,
+        ),
+        sep(),
+        row('局域网 IP', ip),
+        sep(),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '简捷模式',
+                style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: DS.textPrimary),
+              ),
+            ),
+            Text('关闭后恢复完整界面',
+                style: TextStyle(fontSize: 11.5, color: DS.textTertiary)),
+            const SizedBox(width: 8),
+            Switch(value: app.simpleMode, onChanged: app.setSimpleMode),
+          ],
+        ),
+      ],
     );
   }
 }

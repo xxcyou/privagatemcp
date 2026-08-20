@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -62,11 +63,21 @@
             </intent-filter>
         </activity>
 
-        <!-- MCP 服务器前台服务（保持进程存活） -->
+        <!-- MCP 服务器前台服务（保持进程存活）
+             specialUse：常驻服务器类型，无超时限制（dataSync 在 Android 15+ 有 6 小时超时，
+             超时未停止会抛 ForegroundServiceDidNotStopInTimeException 崩溃） -->
+        <!-- 注意：dataSync 用于 API<34 的回落类型（该分支运行时用 dataSync 启动前台服务），
+             因此向后兼容类型的 dataSync 必须也声明在 foregroundServiceType 里，否则
+             API<34 设备（如 Android 13）startForeground(dataSync) 会因类型未声明抛
+             SecurityException → 5s 超时 → ForegroundServiceDidNotStartInTimeException 崩溃 -->
         <service
             android:name=".PrivaGateService"
             android:exported="false"
-            android:foregroundServiceType="dataSync|mediaProjection"/>
+            android:foregroundServiceType="specialUse|dataSync|mediaProjection">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="MCP server: keeps the local MCP server process alive for LAN clients"/>
+        </service>
 
         <!-- 无障碍服务（UI 自动化工具） -->
         <service

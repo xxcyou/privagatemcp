@@ -24,6 +24,51 @@ class SettingsPage extends StatelessWidget {
         Text('设置', style: DS.h1),
         const SizedBox(height: DS.sp16),
 
+        // ---------- 界面 ----------
+        const SectionHeader(title: '界面'),
+        AppCard(
+          padding: const EdgeInsets.all(DS.sp20),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: DS.surfaceAlt.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: DS.border),
+                ),
+                child: Icon(Icons.center_focus_strong_rounded,
+                    size: 18, color: DS.textSecondary),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('简捷模式',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: DS.textPrimary)),
+                    const SizedBox(height: 2),
+                    Text(
+                      '关闭动画、毛玻璃、渐变等装饰，信息以简洁列表展示',
+                      style: TextStyle(
+                          fontSize: 11.5, color: DS.textTertiary),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: app.simpleMode,
+                onChanged: app.setSimpleMode,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: DS.sp24),
+
         // ---------- 服务器 ----------
         const SectionHeader(title: '服务器'),
         AppCard(
@@ -476,6 +521,51 @@ class SettingsPage extends StatelessWidget {
         ),
         const SizedBox(height: DS.sp24),
 
+        // ---------- 局域网发现 ----------
+        const SectionHeader(title: '局域网发现'),
+        AppCard(
+          padding: const EdgeInsets.all(DS.sp20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.radar_rounded,
+                      size: 17, color: DS.textSecondary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('广播发现（UDP 53001）',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: DS.textPrimary)),
+                        const SizedBox(height: 2),
+                        Text(
+                          '向局域网广播 MCP 地址与令牌，NAS 端自动发现，无需手动报 IP',
+                          style: TextStyle(fontSize: 11.5, color: DS.textTertiary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: app.discoveryEnabled,
+                    onChanged: app.setDiscoveryEnabled,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '⚠ 广播含连接令牌，同一局域网内的设备可借此连接 MCP；仅建议在可信网络开启',
+                style: TextStyle(fontSize: 11, height: 1.45, color: DS.textTertiary),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: DS.sp24),
+
         // ---------- 安全 ----------
         const SectionHeader(title: '安全'),
         AppCard(
@@ -635,7 +725,7 @@ class SettingsPage extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                         color: DS.textPrimary)),
                 const SizedBox(height: 2),
-                Text('v1.7.0 · SukiSU-Ultra · mcp_dart · Flutter',
+                Text('v1.8.0 · SukiSU-Ultra · mcp_dart · Flutter',
                     style:
                         TextStyle(fontSize: 11.5, color: DS.textTertiary)),
                 const SizedBox(height: 12),

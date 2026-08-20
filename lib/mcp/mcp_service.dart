@@ -49,8 +49,12 @@ class McpService {
     required this.onLog,
     required this.onStatusChanged,
     required this.getPermissions,
+    this.onLanIpChanged,
     this.adbRunner,
   });
+
+  /// 局域网 IP 变化回调（用于广播发现等外部同步）
+  final void Function()? onLanIpChanged;
 
   bool get running => _running;
   int get port => _port;
@@ -108,6 +112,7 @@ class McpService {
     if (before != _lanIp) {
       onLog(LogEntry.info('局域网 IP 变更: ${before ?? '-'} → ${_lanIp ?? '-'}'));
       onStatusChanged();
+      onLanIpChanged?.call();
     }
   }
 
@@ -299,7 +304,7 @@ class McpService {
 
   McpServer _newServer() {
     final s = McpServer(
-      const Implementation(name: 'priva-gate-mcp', version: '1.7.0'),
+      const Implementation(name: 'priva-gate-mcp', version: '1.8.3'),
       options: const McpServerOptions(
         capabilities: ServerCapabilities(tools: ServerCapabilitiesTools()),
       ),

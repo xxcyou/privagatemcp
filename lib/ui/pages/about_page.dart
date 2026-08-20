@@ -9,7 +9,7 @@ import '../theme.dart';
 import '../widgets/components.dart';
 
 /// 应用版本（与 pubspec.yaml 同步）
-const String kAppVersion = '1.7.0';
+const String kAppVersion = '1.8.3';
 
 /// 关于页：版本 / 功能 / 权限说明 / 免责声明
 class AboutPage extends StatelessWidget {

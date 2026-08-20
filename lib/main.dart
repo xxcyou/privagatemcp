@@ -25,6 +25,7 @@ class PrivaGateApp extends StatelessWidget {
         builder: (context, state, _) {
           // 同步设计系统到当前主题（配色 × 亮度）
           DS.setActiveIndex(state.themeIndex);
+          DS.simple = state.simpleMode;
           final dark = state.themeMode == ThemeMode.dark ||
               (state.themeMode == ThemeMode.system &&
                   MediaQuery.platformBrightnessOf(context) == Brightness.dark);

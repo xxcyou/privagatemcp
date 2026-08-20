@@ -55,6 +55,25 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/discovery")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "start" -> {
+                        McpDiscovery.start(buildInfo(call))
+                        result.success(true)
+                    }
+                    "update" -> {
+                        McpDiscovery.update(buildInfo(call))
+                        result.success(true)
+                    }
+                    "stop" -> {
+                        McpDiscovery.stop()
+                        result.success(true)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "privagate/shizuku")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -441,6 +460,14 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    private fun buildInfo(call: io.flutter.plugin.common.MethodCall): String {
+        val ip = call.argument<String>("ip") ?: ""
+        val port = call.argument<Int>("port") ?: 8787
+        val token = call.argument<String>("token") ?: ""
+        val version = call.argument<String>("version") ?: ""
+        return McpDiscovery.buildInfo(ip, port, token, version)
     }
 
     private var pendingPhotoResult: io.flutter.plugin.common.MethodChannel.Result? = null

@@ -25,6 +25,19 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 简捷模式：无阴影/高光/着色条，纯扁平卡片
+    if (DS.simple) {
+      return Container(
+        margin: margin,
+        padding: padding,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(DS.r12),
+          color: DS.surface,
+          border: Border.all(color: DS.border),
+        ),
+        child: child,
+      );
+    }
     return Container(
       margin: margin,
       decoration: BoxDecoration(
@@ -148,9 +161,9 @@ class SectionHeader extends StatelessWidget {
               children: [
                 Text(title,
                     style: TextStyle(
-                        fontSize: 13,
+                        fontSize: DS.simple ? 12 : 13,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 1.1,
+                        letterSpacing: DS.simple ? 0.2 : 1.1,
                         color: DS.textTertiary)),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
@@ -225,6 +238,17 @@ class _BreathingDotState extends State<BreathingDot>
 
   @override
   Widget build(BuildContext context) {
+    // 简捷模式：静态圆点，无动画/光晕
+    if (DS.simple) {
+      return Container(
+        width: widget.size,
+        height: widget.size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: widget.color,
+        ),
+      );
+    }
     return AnimatedBuilder(
       animation: _c,
       builder: (_, _) {
@@ -321,13 +345,16 @@ class PrimaryButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(DS.r12),
-          boxShadow: [
-            BoxShadow(
-              color: (color ?? DS.brand).withValues(alpha: busy ? 0.15 : 0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: DS.simple
+              ? null
+              : [
+                  BoxShadow(
+                    color: (color ?? DS.brand)
+                        .withValues(alpha: busy ? 0.15 : 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

@@ -11,6 +11,7 @@ import '../core/native_bridge.dart';
 import '../core/permissions.dart';
 import '../core/root_engine.dart';
 import '../mcp/mcp_service.dart';
+import '../ui/pages/about_page.dart' show kAppVersion;
 
 /// 全局应用状态
 class AppState extends ChangeNotifier with WidgetsBindingObserver {
@@ -22,6 +23,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   static const _kDangerPolicy = 'danger_policy';
   static const _kAdbMemory = 'adb_memory';
   static const _kAdbWasEnabled = 'adb_was_enabled';
+  static const _kSimpleMode = 'simple_mode';
+  static const _kDiscovery = 'discovery_enabled';
 
   final RootEngine engine = RootEngine();
   late final McpService mcp;
@@ -44,8 +47,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   /// ADB 记忆开关：开启后下次启动 App 自动恢复 ADB 状态
   bool adbMemory = false;
 
+  /// 简捷模式：关闭动画/毛玻璃/渐变等装饰，简洁列表展示
+  bool simpleMode = false;
+
   /// 上次 ADB 是否处于开启状态（配合 adbMemory 使用）
   bool adbWasEnabled = false;
+
+  /// 局域网广播发现开关（默认开）：UDP 广播 MCP 连接信息供 NAS 自动发现
+  bool discoveryEnabled = true;
 
   RootStatus? rootStatus;
   Permissions permissions = Permissions();
@@ -67,6 +76,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       getToken: () => token,
       onLog: addLog,
       onStatusChanged: notifyListeners,
+      onLanIpChanged: _syncDiscovery,
       getPermissions: () => permissions,
       adbRunner: adbService,
     );
@@ -90,6 +100,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     engine.dangerPolicy = dangerPolicy;
     adbMemory = _prefs!.getBool(_kAdbMemory) ?? false;
     adbWasEnabled = _prefs!.getBool(_kAdbWasEnabled) ?? false;
+    simpleMode = _prefs!.getBool(_kSimpleMode) ?? false;
+    discoveryEnabled = _prefs!.getBool(_kDiscovery) ?? true;
 
     if (token.isEmpty) {
       token = _generateToken();
@@ -256,6 +268,13 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// 简捷模式开关：关闭动画/毛玻璃/渐变等装饰，信息以简洁列表展示
+  Future<void> setSimpleMode(bool v) async {
+    simpleMode = v;
+    await _prefs?.setBool(_kSimpleMode, v);
+    notifyListeners();
+  }
+
   Future<void> requestLocationPerm() async {
     await NativeBridge.requestLocation();
     await Future.delayed(const Duration(seconds: 1));
@@ -369,6 +388,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
       await mcp.start(port);
       await ForegroundService.start();
+      await _syncDiscovery();
     } catch (e) {
       addLog(LogEntry.error('启动服务器失败: $e'));
     } finally {
@@ -381,6 +401,35 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (!mcp.running) return;
     await mcp.stop();
     await ForegroundService.stop();
+    await NativeBridge.discoveryStop();
+    notifyListeners();
+  }
+
+  /// 同步广播信息到原生层（启动/IP 变化时调用）
+  Future<void> _syncDiscovery() async {
+    if (!discoveryEnabled) {
+      await NativeBridge.discoveryStop();
+      return;
+    }
+    if (!mcp.running) return;
+    final ip = mcp.lanIp;
+    if (ip == null || ip.isEmpty) return;
+    await NativeBridge.discoveryStart(
+      ip: ip,
+      port: mcp.port,
+      token: token,
+      version: kAppVersion,
+    );
+  }
+
+  Future<void> setDiscoveryEnabled(bool v) async {
+    discoveryEnabled = v;
+    await _prefs?.setBool(_kDiscovery, v);
+    if (v) {
+      await _syncDiscovery();
+    } else {
+      await NativeBridge.discoveryStop();
+    }
     notifyListeners();
   }
 

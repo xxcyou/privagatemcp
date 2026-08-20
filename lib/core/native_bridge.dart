@@ -528,5 +528,44 @@ class NativeBridge {
   static Future<bool> openDialer(String number) async {
     try { return await _device.invokeMethod<bool>('openDialer', {'number': number}) ?? false; } catch (_) { return false; }
   }
+
+  // ---------- 局域网广播发现 ----------
+
+  static const _discovery = MethodChannel('privagate/discovery');
+
+  /// 启动 UDP 广播（含 ip/port/token），NAS 端自动发现
+  static Future<void> discoveryStart({
+    required String ip,
+    required int port,
+    required String token,
+    required String version,
+  }) async {
+    try {
+      await _discovery.invokeMethod('start', {
+        'ip': ip, 'port': port, 'token': token, 'version': version,
+      });
+    } catch (_) {}
+  }
+
+  /// 更新广播信息（IP 变化时）并立即重播
+  static Future<void> discoveryUpdate({
+    required String ip,
+    required int port,
+    required String token,
+    required String version,
+  }) async {
+    try {
+      await _discovery.invokeMethod('update', {
+        'ip': ip, 'port': port, 'token': token, 'version': version,
+      });
+    } catch (_) {}
+  }
+
+  /// 停止广播
+  static Future<void> discoveryStop() async {
+    try {
+      await _discovery.invokeMethod('stop');
+    } catch (_) {}
+  }
 }
 
